@@ -1,1 +1,3 @@
-load beemovie.txt 10
+load beemovie.txt 15
+generate most_common the 10
+quit
