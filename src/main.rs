@@ -54,7 +54,6 @@ fn main() {
             "quit" => break,
             _ => { 
                 println!("Unrecognized command: {}", command);
-                std::process::exit(1);
             },
         }
     }

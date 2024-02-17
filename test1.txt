@@ -1,3 +1,3 @@
 load beemovie.txt 15
-generate most_common the 10
+generate most_common honey 10
 quit
