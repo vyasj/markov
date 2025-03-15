@@ -1,0 +1,4 @@
+This is a piece of test text for running a unit test.
+It contains the word 'test' six times.
+It is meant for unit testing the generate function in main.rs.
+This line contains some punctuation, so that the unit tests can also test an important feature: the punctuation stripping!

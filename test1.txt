@@ -1,3 +1,5 @@
-load beemovie.txt 15
-generate most_common honey 10
+load meditations.txt 15
+generate most_common death 10
+generate most_common life 10
+generate most_common man 10
 quit

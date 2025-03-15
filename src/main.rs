@@ -2,33 +2,40 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 
+// Data Structure for a single Markov node
 struct MarkovNode {
-    freq: u64,
+    freq: u16,
     next: HashMap<String, MarkovNode>
 }
 
 fn main() {
+    // Read the filename passed in as the first command line argument, and initialize empty Markov chain
     let filename = env::args().nth(1).expect("Expected a single command line argument");
     let mut markov_chain: HashMap<String, MarkovNode> = HashMap::new();
     let mut max_windowsize: usize = 0;
+    let mut text_dir = String::from("texts/");
 
+    // Read file line by line
     let binding = fs::read_to_string(&filename)
         .expect(&format!("Unable to read {}", &filename));
     let instructions: Vec<&str> = binding
         .lines()
         .collect();
 
+    // Read each line instruction token by token
+    // See README.md for expected command file structure
     for line in instructions {
         let words_vec: Vec<&str> = line.split(" ").collect();
         let command = words_vec[0];
         
         match command {
-            "load" => {
+            "load" => { // Load a text file and train the Markov chain
                 let infile = words_vec[1];
                 let windowsize: usize = words_vec[2].parse().unwrap();
                 max_windowsize = std::cmp::max(windowsize, max_windowsize);
 
-                let binding = fs::read_to_string(&infile)
+                text_dir.push_str(&infile);
+                let binding = fs::read_to_string(&text_dir)
                     .expect(&format!("Unable to read {}", &infile));
                 let words: Vec<&str> = binding
                     .split(" ")
@@ -38,7 +45,7 @@ fn main() {
                     populate(&words, i, windowsize, &mut markov_chain);
                 }
             },
-            "generate" => {
+            "generate" => { // Generate a sentence
                 let gen_mode = words_vec[1];
                 let start_word = words_vec[2];
                 let windowsize: usize = words_vec[3].parse().unwrap();
@@ -52,7 +59,7 @@ fn main() {
                 println!("{}", output);
             },
             "quit" => break,
-            _ => { 
+            _ => {
                 println!("Unrecognized command: {}", command);
             },
         }
@@ -60,12 +67,14 @@ fn main() {
 }
 
 fn populate(text: &Vec<&str>, index: usize, context_depth: usize, data: &mut HashMap<String, MarkovNode>) {
+    // Recursively populate the Markov chain
+
     if context_depth == 0 || index >= text.len() {
         return;
     }
 
     let mut curr_word = text[index].to_string();
-    curr_word.retain(|c| !r#"(),".;:'"#.contains(c));
+    curr_word.retain(|c| !r#"(),".;:!?'"#.contains(c));
 
     if let Some(next_node) = data.get_mut(&curr_word) {
         next_node.freq = next_node.freq + 1;
@@ -109,7 +118,7 @@ fn generate(mode: &str, first_word: &str, context_depth: usize, data: &HashMap<S
             }
         },
         "random" => {
-            println!("Not built yet. Use most_common for now.");
+            println!("'random' capability not built yet. Use most_common for now.");
         },
         _ => { 
             println!("Unrecognized mode: {}", mode);
