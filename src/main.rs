@@ -23,35 +23,43 @@ fn main() {
         .collect();
 
     // Read each line instruction token by token
-    // See README.md for expected command file structure
+    // See README.md for expected instruction file structure
     for line in instructions {
-        let words_vec: Vec<&str> = line.split(" ").collect();
-        let command = words_vec[0];
+        let command_details: Vec<&str> = line
+            .split(" ")
+            .collect();
+        let command = command_details[0];
         
         match command {
             "load" => { // Load a text file and train the Markov chain
-                let infile = words_vec[1];
-                let windowsize: usize = words_vec[2].parse().unwrap();
+                let infile = command_details[1];
+                let windowsize: usize = command_details[2].parse().unwrap();
                 max_windowsize = std::cmp::max(windowsize, max_windowsize);
 
                 text_dir.push_str(&infile);
                 let binding = fs::read_to_string(&text_dir)
                     .expect(&format!("Unable to read {}", &infile));
-                let words: Vec<&str> = binding
-                    .split(" ")
+                let lines: Vec<&str> = binding
+                    .lines()
                     .collect();
-                
-                for (i, _) in words.iter().enumerate() {
-                    populate(&words, i, windowsize, &mut markov_chain);
+
+                for line in lines {
+                    let words: Vec<&str> = line
+                        .split(" ")
+                        .collect();
+
+                    for (i, _) in words.iter().enumerate() {
+                        populate(&words, i, windowsize, &mut markov_chain);
+                    }
                 }
             },
             "generate" => { // Generate a sentence
-                let gen_mode = words_vec[1];
-                let start_word = words_vec[2];
-                let windowsize: usize = words_vec[3].parse().unwrap();
+                let gen_mode = command_details[1];
+                let start_word = command_details[2];
+                let windowsize: usize = command_details[3].parse().unwrap();
 
                 if windowsize > max_windowsize {
-                    println!("Invalid context size: {}. Try with a context size equal to or smaller than the largest size provided in the \"load\" commands.", windowsize);
+                    println!("Invalid context size: {}. Try with a context size equal to or smaller than the largest size provided in the \"load\" instruction.", windowsize);
                 }
 
                 let output: String = generate(gen_mode, start_word, windowsize, &markov_chain);
@@ -73,8 +81,9 @@ fn populate(text: &Vec<&str>, index: usize, context_depth: usize, data: &mut Has
         return;
     }
 
-    let mut curr_word = text[index].to_string();
-    curr_word.retain(|c| !r#"(),".;:!?'"#.contains(c));
+    let curr_word = text[index]
+        .to_string()
+        .replace(&['(', ')', ',', '.', '?', '!', ':', ';', '\'', '\"', '\\', '/', ' '], "");
 
     if let Some(next_node) = data.get_mut(&curr_word) {
         next_node.freq = next_node.freq + 1;
@@ -130,7 +139,7 @@ fn generate(mode: &str, first_word: &str, context_depth: usize, data: &HashMap<S
 }
 
 fn find_most_common(data: &HashMap<String, MarkovNode>) -> String {
-    let mut highest_freq: u64 = 0;
+    let mut highest_freq: u16 = 0;
     let mut return_key: String = String::new();
     for key in data.keys() {
         if data[key].freq > highest_freq {
@@ -140,4 +149,31 @@ fn find_most_common(data: &HashMap<String, MarkovNode>) -> String {
     }
 
     return_key
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_populate() {
+        let test_text = fs::read_to_string("texts/unit_test_populate.txt")
+            .expect(&format!("Unable to read unit_test_populate.txt"));
+        let mut markov_chain: HashMap<String, MarkovNode> = HashMap::new();
+        let windowsize = 5;
+
+        let words: Vec<&str> = test_text
+            .split(" ")
+            .collect();
+
+        for (i, _) in words.iter().enumerate() {
+            populate(&words, i, windowsize, &mut markov_chain);
+        }
+
+        let expected_word = String::from("test");
+
+        let word = find_most_common(&markov_chain);
+
+        assert_eq!(word, expected_word);
+    }
 }

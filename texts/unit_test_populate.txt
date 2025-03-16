@@ -1,0 +1,4 @@
+This is a piece of test text for running a unit test.
+It contains the singular word test six times. This makes test the most common word found in this file.
+It is meant to unit test the generate function in main.rs.
+This file contains some punctuation, so the unit tests can also test an important feature: the punctuation stripping!
