@@ -1,5 +1,3 @@
-use rand::Rng;
-
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -141,8 +139,11 @@ fn generate(
             if context_counter == 0 {
                 break;
             }
-            let mut rng = rand::thread_rng();
-            let idx = rng.gen_range(0, data.len());
+            let rand_word: &String = data[&key_val].next.keys().last().unwrap();
+            gen_string.push_str(" ");
+            gen_string.push_str(rand_word);
+            key_val = rand_word.to_string();
+            context_counter = context_counter - 1;
         }
         _ => {
             println!("Unrecognized mode: {}", mode);

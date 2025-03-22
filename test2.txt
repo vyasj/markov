@@ -1,0 +1,4 @@
+load mlkspeech.txt 10
+generate random dream 5
+generate most_common dream 5
+quit
