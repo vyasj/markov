@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -139,12 +141,12 @@ fn generate(
             if context_counter == 0 {
                 break;
             }
-            let rand_word: &String = data[&key_val].next.keys().last().unwrap();
+            let rand_word: String = find_random(&data[&key_val].next);
             gen_string.push_str(" ");
-            gen_string.push_str(rand_word);
+            gen_string.push_str(&rand_word);
             key_val = rand_word.to_string();
             context_counter = context_counter - 1;
-        }
+        },
         _ => {
             println!("Unrecognized mode: {}", mode);
             std::process::exit(1);
@@ -165,6 +167,15 @@ fn find_most_common(data: &HashMap<String, MarkovNode>) -> String {
     }
 
     return_key
+}
+
+fn find_random(data: &HashMap<String, MarkovNode>) -> String {
+    let keys: Vec<&String> = data.keys().collect();
+    let mut rng = rand::rng();
+    let idx: usize = rng.random_range(0..keys.len());
+    let word: String = keys[idx].to_string();
+
+    word
 }
 
 #[cfg(test)]
